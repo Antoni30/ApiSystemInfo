@@ -2,6 +2,7 @@ import socket
 import time
 import sys
 import os
+import json
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -20,14 +21,14 @@ def start_server(host='0.0.0.0', port=9999):
         try:
             while True:
                 resources = get_system_resources()
-                message = (
-                    f"CPU: {resources['cpu_percent']}%, "
-                    f"Memoria: {resources['memory_percent']}%, "
-                    f"Disco: {resources['disk_percent']}%, "
-                    f"Red (Enviados): {resources['net_bytes_sent'] / 1024:.2f} KB, "
-                    f"Red (Recibidos): {resources['net_bytes_recv'] / 1024:.2f} KB, "
-                    f"Conexiones de red: {resources['net_connections']}\n"
-                )
+                message = json.dumps({
+                    "cpu": f"{resources['cpu_percent']}%",
+                    "memoria": f"{resources['memory_percent']}%",
+                    "disco": f"{resources['disk_percent']}%",
+                    "red_enviados": f"{resources['net_bytes_sent'] / 1024:.2f} KB",
+                    "red_recibidos": f"{resources['net_bytes_recv'] / 1024:.2f} KB",
+                    "conexiones_red": resources['net_connections']
+                }, ensure_ascii=False)
                 client_socket.send(message.encode('utf-8'))
                 time.sleep(1)
         except (ConnectionResetError, BrokenPipeError):
