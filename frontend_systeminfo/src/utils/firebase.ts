@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -16,3 +16,16 @@ const firebaseConfig = {
 // Initializar Firebase
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+
+// Funcion para enviar correo de recuperacion de contraseña
+export const sendPasswordReset = async (email: string) => {
+    try {
+        await sendPasswordResetEmail(auth, email);
+        return { success: true };
+    } catch (error: any) {
+        if (error.code === 'auth/user-not-found') {
+            return { success: false, message: "No se encontró una cuenta con este correo electrónico." };
+        }
+        return { success: false, message: "Error al enviar el correo de restablecimiento." };
+    }
+};

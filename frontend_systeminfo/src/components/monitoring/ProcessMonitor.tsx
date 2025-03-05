@@ -17,7 +17,12 @@ type SortConfig = {
     direction: "ascending" | "descending"
 }
 
-export default function ProcessMonitor() {
+interface ProcessMonitorProps {
+    threshold: number
+    onAlert: (resourceName: string, value: number) => void
+}
+
+export default function ProcessMonitor({ threshold, onAlert }: ProcessMonitorProps) {
     const [processes, setProcesses] = useState<Process[]>([])
     const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "memory", direction: "descending" })
     const data = useWebSocket()
@@ -34,8 +39,14 @@ export default function ProcessMonitor() {
                 return 0
             })
             setProcesses(sortedProcesses)
+
+            // Checkear si algún proceso supera el umbral
+            const highUsageProcess = sortedProcesses.find((p) => p.cpu_percent > threshold || p.memory > threshold)
+            if (highUsageProcess) {
+                onAlert("Proceso", Math.max(highUsageProcess.cpu_percent, highUsageProcess.memory))
+            }
         }
-    }, [data, sortConfig])
+    }, [data, sortConfig, threshold, onAlert])
 
     const requestSort = (key: keyof Process) => {
         let direction: "ascending" | "descending" = "ascending"
@@ -56,9 +67,13 @@ export default function ProcessMonitor() {
         return null
     }
 
+    const isOverloaded = processes.some((p) => p.cpu_percent > threshold || p.memory > threshold)
+
     return (
-        <div className="bg-white p-4 rounded-lg shadow">
-            <h2 className="text-xl font-bold mb-4 text-black">Monitoreo de Procesos</h2>
+        <div className={`bg-white p-4 rounded-lg shadow ${isOverloaded ? "border-2 border-red-500" : ""}`}>
+            <h2 className={`text-xl font-bold mb-4 ${isOverloaded ? "text-red-500" : "text-black"}`}>
+                Monitoreo de Procesos {isOverloaded && "(¡Alerta!)"}
+            </h2>
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -82,11 +97,11 @@ export default function ProcessMonitor() {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {processes.map((process) => (
-                            <tr key={process.pid}>
+                            <tr key={process.pid} className={process.cpu_percent > threshold || process.memory > threshold ? "bg-red-100" : ""}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{process.pid}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{process.name}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{process.cpu_percent.toFixed(2)}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{process.memory.toFixed(2)}</td>
+                                <td className={`px-6 py-4 whitespace-nowrap text-sm ${process.cpu_percent > threshold ? "text-red-500 font-bold" : "text-gray-500"}`}>{process.cpu_percent.toFixed(2)}</td>
+                                <td className={`px-6 py-4 whitespace-nowrap text-sm ${process.memory > threshold ? "text-red-500 font-bold" : "text-gray-500"}`}>{process.memory.toFixed(2)}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{process.status}</td>
                             </tr>
                         ))}

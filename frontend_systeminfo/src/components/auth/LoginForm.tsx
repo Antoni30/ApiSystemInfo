@@ -5,23 +5,34 @@ import { auth } from "@/utils/firebase"; // Importamos Firebase
 import { useRouter } from "next/navigation";
 import styles from '../../styles/form.module.css';
 import Link from 'next/link';
+import ResetPasswordForm from "./ResetPasswrod";
+import { ClipLoader } from 'react-spinners';
 
 const LoginForm = ({ setIsLogin, setIsVisible }: { setIsLogin: (value: boolean) => void, setIsVisible: (value: boolean) => void }) => {
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [showResetPassword, setShowResetPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
         try {
             await signInWithEmailAndPassword(auth, email, password);
             setIsVisible(false); // Oculta el formulario
             router.push("/dashboard"); // Redirige
         } catch (err: any) {
             setError("Error al iniciar sesión. Verifica tus credenciales.");
+        } finally {
+            setLoading(false);
         }
     };
+
+    if (showResetPassword) {
+        return <ResetPasswordForm setIsVisible={setIsVisible} resetShowResetPassword={() => setShowResetPassword(false)} />;
+    }
 
     return (
         <div className={`${styles.formBox} ${styles.login}`}>
@@ -44,10 +55,12 @@ const LoginForm = ({ setIsLogin, setIsVisible }: { setIsLogin: (value: boolean) 
                         <input type='password' required value={password} onChange={(e) => setPassword(e.target.value)}></input>
                         <label>Contraseña</label>
                     </div>
-                    <Link href="/" className={`${styles.link} ${styles.forgotPassLink}`}>
+                    <Link href="#" className={`${styles.link} ${styles.forgotPassLink}`} onClick={() => setShowResetPassword(true)}>
                         Olvidé mi contraseña
                     </Link>
-                    <button type='submit' className={styles.submitButton}>Ingresar</button>
+                    <button type='submit' className={styles.submitButton} disabled={loading}>
+                        {loading ? <ClipLoader size={20} color={"#fff"} />: "Ingresar"}
+                    </button>
                 </form>
                 <div className={styles.bottomLink}>
                     ¿No tienes una cuenta?

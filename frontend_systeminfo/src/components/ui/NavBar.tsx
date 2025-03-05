@@ -26,24 +26,25 @@ const NavBar = ({ setIsVisible, setIsLogin }: NavBarProps) => {
         return () => unsubscribe();
     }, []);
 
+    const handleSignOut = async () => {
+        await signOut(auth);
+        router.push("/"); // Redirigir al login
+    };    
+
     return (
         
         <nav className={styles.navbar}>
             <span className={`${styles.hamburgerBtn} material-symbols-rounded`} onClick={() => setMenuOpen(!menuOpen)}>menu</span>
             <Logo />
             <ul className={`${styles.links} ${menuOpen ? styles.showMenu : ""}`}>
-                <li><Link href="#" className={styles.link}>Inicio</Link></li>
-                <li><Link href="#" className={styles.link}>Acerca de</Link></li>
-                <li><Link href="#" className={styles.link}>Contactos</Link></li>
+                <li><Link href="/" className={styles.link}>Inicio</Link></li>
+                <li><Link href="about" className={styles.link}>Acerca de</Link></li>
+                <li><Link href="/contact" className={styles.link}>Contactos</Link></li>
                 <span className={`${styles.closeBtn} material-symbols-rounded`} onClick={() => setMenuOpen(false)}>close</span>
             </ul>
             {user ? (
                 // Si hay usuario, mostrar el botón de "Cerrar Sesión"
-                <button className={styles.logoutBtn} onClick={() => {
-                    signOut(auth).then(() => {
-                        router.push("/"); // Redirigir al login
-                    });
-                }}>
+                <button className={styles.logoutBtn} onClick={handleSignOut}>
                     Cerrar Sesión
                 </button>
             ) : (
