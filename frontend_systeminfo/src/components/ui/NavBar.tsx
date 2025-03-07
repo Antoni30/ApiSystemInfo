@@ -38,13 +38,13 @@ const NavBar = ({ setIsVisible, setIsLogin }: NavBarProps) => {
             <Logo />
             <ul className={`${styles.links} ${menuOpen ? styles.showMenu : ""}`}>
                 <li><Link href="/" className={styles.link}>Inicio</Link></li>
-                <li><Link href="about" className={styles.link}>Acerca de</Link></li>
+                <li><Link href="/about" className={styles.link}>Acerca de</Link></li>
                 <li><Link href="/contact" className={styles.link}>Contactos</Link></li>
                 <span className={`${styles.closeBtn} material-symbols-rounded`} onClick={() => setMenuOpen(false)}>close</span>
             </ul>
             {user ? (
                 // Si hay usuario, mostrar el botón de "Cerrar Sesión"
-                <button className={styles.logoutBtn} onClick={handleSignOut}>
+                <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onClick={handleSignOut}>
                     Cerrar Sesión
                 </button>
             ) : (

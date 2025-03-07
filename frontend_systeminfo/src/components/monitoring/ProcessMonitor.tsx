@@ -24,8 +24,11 @@ interface ProcessMonitorProps {
 
 export default function ProcessMonitor({ threshold, onAlert }: ProcessMonitorProps) {
     const [processes, setProcesses] = useState<Process[]>([])
-    const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "memory", direction: "descending" })
+    const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "cpu_percent", direction: "descending" })
     const data = useWebSocket()
+
+    // Estado para evitar enviar alertas repetitivas
+    const [lastAlertTime, setLastAlertTime] = useState<number>(0)
 
     useEffect(() => {
         if (data && data.procesos) {
@@ -41,12 +44,21 @@ export default function ProcessMonitor({ threshold, onAlert }: ProcessMonitorPro
             setProcesses(sortedProcesses)
 
             // Checkear si algún proceso supera el umbral
-            const highUsageProcess = sortedProcesses.find((p) => p.cpu_percent > threshold || p.memory > threshold)
-            if (highUsageProcess) {
-                onAlert("Proceso", Math.max(highUsageProcess.cpu_percent, highUsageProcess.memory))
+            const now = Date.now()
+            // Solo enviar alertas cada 3 segundos para evitar spam
+            if (now - lastAlertTime > 3000) {
+                for (const process of sortedProcesses) {
+                    // Solo comparar CPU con threshold, ya que memory está en MB
+                    if (process.cpu_percent > threshold) {
+                        // Enviar el valor de CPU como porcentaje
+                        onAlert(`CPU del Proceso ${process.name}`, parseFloat(process.cpu_percent.toFixed(1)));
+                        setLastAlertTime(now);
+                        break; // Solo enviar una alerta por ciclo
+                    }
+                }
             }
         }
-    }, [data, sortConfig, threshold, onAlert])
+    }, [data, sortConfig, threshold, onAlert, lastAlertTime])
 
     const requestSort = (key: keyof Process) => {
         let direction: "ascending" | "descending" = "ascending"
@@ -67,7 +79,8 @@ export default function ProcessMonitor({ threshold, onAlert }: ProcessMonitorPro
         return null
     }
 
-    const isOverloaded = processes.some((p) => p.cpu_percent > threshold || p.memory > threshold)
+    // Solo considerar el uso de CPU para determinar sobrecarga
+    const isOverloaded = processes.some((p) => p.cpu_percent > threshold)
 
     return (
         <div className={`bg-white p-4 rounded-lg shadow ${isOverloaded ? "border-2 border-red-500" : ""}`}>
@@ -97,11 +110,11 @@ export default function ProcessMonitor({ threshold, onAlert }: ProcessMonitorPro
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {processes.map((process) => (
-                            <tr key={process.pid} className={process.cpu_percent > threshold || process.memory > threshold ? "bg-red-100" : ""}>
+                            <tr key={process.pid} className={process.cpu_percent > threshold ? "bg-red-100" : ""}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{process.pid}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{process.name}</td>
                                 <td className={`px-6 py-4 whitespace-nowrap text-sm ${process.cpu_percent > threshold ? "text-red-500 font-bold" : "text-gray-500"}`}>{process.cpu_percent.toFixed(2)}</td>
-                                <td className={`px-6 py-4 whitespace-nowrap text-sm ${process.memory > threshold ? "text-red-500 font-bold" : "text-gray-500"}`}>{process.memory.toFixed(2)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{process.memory.toFixed(2)}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{process.status}</td>
                             </tr>
                         ))}

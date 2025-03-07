@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useWebSocket } from "@/utils/WebSocketContext"
 import { ChevronDown, ChevronUp, ArrowUpDown, Info, Download, RefreshCw } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
@@ -71,27 +71,49 @@ export default function NetworkDetailMonitor() {
     const [protocolDistribution, setProtocolDistribution] = useState<{ name: string; value: number }[]>([])
     const data = useWebSocket()
 
+    // Referencia para almacenar los valores anteriores de bytes enviados/recibidos
+    const previousDataRef = useRef<{ sentBytes: number, receivedBytes: number } | null>(null);
+
     useEffect(() => {
         if (data && autoRefresh) {
             setLoading(false)
 
             // Extraer datos reales del WebSocket
-            const sentBytes = data.red_enviados ? Number.parseFloat(data.red_enviados.replace(" KB", "")) : 0
-            const receivedBytes = data.red_recibidos ? Number.parseFloat(data.red_recibidos.replace(" KB", "")) : 0
+            const currentSentBytes = data.red_enviados ? Number.parseFloat(data.red_enviados.replace(" KB", "")) : 0
+            const currentReceivedBytes = data.red_recibidos ? Number.parseFloat(data.red_recibidos.replace(" KB", "")) : 0
             const connectionCount = data.conexiones_red || 0
 
-            // Actualizar datos históricos de red
-            const newNetworkData: NetworkData = {
-                timestamp: Date.now(),
-                sent: sentBytes,
-                received: receivedBytes,
-                connections: connectionCount,
+            // Calcular tasas por segundo (en lugar de valores acumulativos)
+            let sentRate = 0;
+            let receivedRate = 0;
+
+            if (previousDataRef.current) {
+                // Calcular la diferencia desde la última actualización para obtener la tasa
+                sentRate = Math.max(0, currentSentBytes - previousDataRef.current.sentBytes);
+                receivedRate = Math.max(0, currentReceivedBytes - previousDataRef.current.receivedBytes);
             }
 
-            setNetworkData((prev) => {
-                const updated = [...prev, newNetworkData].slice(-60) // Mantener solo los últimos 60 puntos de datos
-                return updated
-            })
+            // Actualizar la referencia para la próxima comparación
+            previousDataRef.current = {
+                sentBytes: currentSentBytes,
+                receivedBytes: currentReceivedBytes
+            };
+
+            // Solo agregar datos si tenemos tasas válidas (segunda muestra en adelante)
+            if (previousDataRef.current && (sentRate > 0 || receivedRate > 0 || networkData.length > 0)) {
+                // Actualizar datos históricos de red
+                const newNetworkData: NetworkData = {
+                    timestamp: Date.now(),
+                    sent: sentRate,
+                    received: receivedRate,
+                    connections: connectionCount,
+                };
+
+                setNetworkData((prev) => {
+                    const updated = [...prev, newNetworkData].slice(-60) // Mantener solo los últimos 60 puntos de datos
+                    return updated
+                });
+            }
 
             // Verificar si tenemos datos detallados de conexiones reales
             if (data.detalles_conexiones && Array.isArray(data.detalles_conexiones)) {
@@ -657,4 +679,3 @@ function generateMockConnections(count: number): NetworkConnection[] {
 
     return connections
 }
-

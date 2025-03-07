@@ -128,7 +128,15 @@ const Dashboard = () => {
                     </div>
                 )}
             </DashboardContainer>
-            <ToastContainer position="top-right" autoClose={5000} />
+            <ToastContainer position="bottom-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={true}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover />
         </WebSocketProvider>
     );
 };
