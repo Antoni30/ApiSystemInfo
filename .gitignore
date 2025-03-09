@@ -86,3 +86,4 @@ instance/
 *.pyo
 *.sqlite3
 db.sqlite3
+desarrollo

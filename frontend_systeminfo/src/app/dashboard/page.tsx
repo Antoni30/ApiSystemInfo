@@ -21,6 +21,7 @@ import DetailedCPUMonitor from "@/components/detailed/DetailedCPUMonitor";
 import DetailedMemoryMonitor from "@/components/detailed/DetailedMemoryMonitor";
 import DetailedProcessMonitor from "@/components/detailed/DetailedProcessMonitor";
 import NetworkDetailMonitor from "@/components/detailed/NetworkDetailMonitor";
+import ReportPage from "@/components/detailed/ReportPage";
 
 const Dashboard = () => {
     const router = useRouter();
@@ -125,6 +126,11 @@ const Dashboard = () => {
                 {activeTab === "process-detail" && (
                     <div className="container mx-auto px-4 py-8 text-black">
                         <DetailedProcessMonitor />
+                    </div>
+                )}
+                 {activeTab === "report" && (
+                    <div className="container mx-auto px-4 py-8 text-black">
+                        <ReportPage />
                     </div>
                 )}
             </DashboardContainer>

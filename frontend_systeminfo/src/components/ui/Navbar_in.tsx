@@ -26,6 +26,7 @@ const Navbar = ({ user, onTabChange }) => {
                 <a href="#" onClick={() => handleTabClick("memory-detail")}>Memoria</a>
                 <a href="#" onClick={() => handleTabClick("network-detail")}>Red</a>
                 <a href="#" onClick={() => handleTabClick("process-detail")}>Procesos</a>
+                <a href="#" onClick={() => handleTabClick("report")}>Generar Reporte</a>
                 <span className={`material-symbols-rounded ${styles.closeBtn} `} onClick={() => setMenuOpen(false)}>close</span>
             </div>
             <div className={styles.userMenu}>
