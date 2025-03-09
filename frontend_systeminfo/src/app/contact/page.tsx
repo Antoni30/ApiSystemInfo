@@ -26,8 +26,8 @@ const Contact = () => {
                 </h2>
                 <ul className="text-gray-700">
                     <li className="flex items-center gap-2"> <FaEnvelope className="text-blue-600" /> Edgar Gallegos - <a href="mailto:ejgallegos@espe.edu.ec" className="text-blue-600">ejgallegos@espe.edu.ec</a></li>
-                    <li className="flex items-center gap-2"> <FaEnvelope className="text-blue-600" /> Diego Pilataxi - <span className="text-gray-500">[Email pendiente]</span></li>
-                    <li className="flex items-center gap-2"> <FaEnvelope className="text-blue-600" /> Anthony Toapanta - <span className="text-gray-500">[Email pendiente]</span></li>
+                    <li className="flex items-center gap-2"> <FaEnvelope className="text-blue-600" /> Diego Pilataxi - <a href="mailto:ejgallegos@espe.edu.ec" className="text-blue-600">dapilataxi1@espe.edu.ec</a></li>
+                    <li className="flex items-center gap-2"> <FaEnvelope className="text-blue-600" /> Antoni Toapanta - <a href="mailto:ejgallegos@espe.edu.ec" className="text-blue-600">artoapanta3@espe.edu.ec</a></li>
                 </ul>
             </div>
             <div className={`${styles.overlayContainer} ${isVisible ? styles.showPopup : ""}`}>
